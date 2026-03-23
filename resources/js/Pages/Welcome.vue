@@ -1,9 +1,24 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 defineProps<{
     appName?: string;
 }>();
+
+const page = usePage();
+
+const displayName = computed(() => {
+    const school = page.props.school as { name?: string } | undefined;
+
+    return school?.name || (page.props.appName as string | undefined) || 'SFAMS';
+});
+
+const logoUrl = computed(() => {
+    const school = page.props.school as { logo_url?: string | null } | undefined;
+
+    return school?.logo_url || null;
+});
 </script>
 
 <template>
@@ -14,9 +29,15 @@ defineProps<{
         <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
-                    <div class="flex items-center">
+                    <div class="flex items-center gap-3">
+                        <img
+                            v-if="logoUrl"
+                            :src="logoUrl"
+                            alt=""
+                            class="h-9 w-auto max-w-[160px] object-contain"
+                        />
                         <span class="text-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-500 bg-clip-text text-transparent">
-                            {{ appName || 'SFAMS' }}
+                            {{ displayName }}
                         </span>
                     </div>
                     <div class="hidden md:flex items-center gap-8">

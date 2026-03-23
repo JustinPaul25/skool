@@ -4,59 +4,84 @@ namespace App\Policies;
 
 use App\Models\Payment;
 use App\Models\User;
+use App\Policies\Concerns\ChecksBranchScope;
+use App\Policies\Concerns\DeniesStudentPanelAccess;
 
 class PaymentPolicy
 {
+    use ChecksBranchScope;
+    use DeniesStudentPanelAccess;
+
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['administrator', 'staff', 'branch_manager']);
+        if ($this->isStudent($user)) {
+            return false;
+        }
+
+        return $user->can('view payments');
     }
 
     public function view(User $user, Payment $payment): bool
     {
-        return $this->ownsBranch($user, $payment);
+        if ($this->isStudent($user)) {
+            return false;
+        }
+
+        if (! $user->can('view payments')) {
+            return false;
+        }
+
+        $branchId = $payment->account?->student?->branch_id;
+
+        return $this->branchMatchesManager($user, $branchId);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['administrator', 'staff', 'branch_manager']);
+        return $user->can('create payments');
     }
 
-    /**
-     * Financial records should only be changed by administrators.
-     */
     public function update(User $user, Payment $payment): bool
     {
-        return $user->hasRole('administrator');
+        if (! $user->can('update payments')) {
+            return false;
+        }
+
+        $branchId = $payment->account?->student?->branch_id;
+
+        return $this->branchMatchesManager($user, $branchId);
     }
 
     public function delete(User $user, Payment $payment): bool
     {
-        return $user->hasRole('administrator');
+        if ($this->isStudent($user)) {
+            return false;
+        }
+
+        if (! $user->can('delete payments')) {
+            return false;
+        }
+
+        $branchId = $payment->account?->student?->branch_id;
+
+        return $this->branchMatchesManager($user, $branchId);
     }
 
     public function restore(User $user, Payment $payment): bool
     {
-        return $user->hasRole('administrator');
+        if ($this->isStudent($user)) {
+            return false;
+        }
+
+        return $this->delete($user, $payment);
     }
 
     public function forceDelete(User $user, Payment $payment): bool
     {
-        return $user->hasRole('administrator');
-    }
-
-    protected function ownsBranch(User $user, Payment $payment): bool
-    {
-        if ($user->hasAnyRole(['administrator', 'staff'])) {
-            return true;
+        if ($this->isStudent($user)) {
+            return false;
         }
 
-        if ($user->hasRole('branch_manager') && $user->branch_id) {
-            $branchId = $payment->account?->student?->branch_id;
-
-            return (int) $branchId === (int) $user->branch_id;
-        }
-
-        return false;
+        return $user->can('delete payments') && $user->hasRole('administrator');
     }
 }

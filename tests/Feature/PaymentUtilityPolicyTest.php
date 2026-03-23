@@ -2,11 +2,8 @@
 
 use App\Models\PaymentUtility;
 use App\Models\User;
-use Database\Seeders\RoleSeeder;
 
-beforeEach(fn () => $this->seed(RoleSeeder::class));
-
-it('allows only administrators to manage payment utilities', function () {
+it('allows administrators full access and staff read-only access to payment utilities', function () {
     $admin = User::factory()->create();
     $admin->assignRole('administrator');
 
@@ -14,6 +11,7 @@ it('allows only administrators to manage payment utilities', function () {
     $staff->assignRole('staff');
 
     expect($admin->can('viewAny', PaymentUtility::class))->toBeTrue()
-        ->and($staff->can('viewAny', PaymentUtility::class))->toBeFalse()
+        ->and($admin->can('create', PaymentUtility::class))->toBeTrue()
+        ->and($staff->can('viewAny', PaymentUtility::class))->toBeTrue()
         ->and($staff->can('create', PaymentUtility::class))->toBeFalse();
 });

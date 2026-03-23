@@ -9,36 +9,36 @@ class PaymentUtilityPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('view payment utilities');
     }
 
     public function view(User $user, PaymentUtility $paymentUtility): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('view payment utilities');
     }
 
     public function create(User $user): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('create payment utilities');
     }
 
     public function update(User $user, PaymentUtility $paymentUtility): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('update payment utilities');
     }
 
     public function delete(User $user, PaymentUtility $paymentUtility): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('delete payment utilities');
     }
 
     public function restore(User $user, PaymentUtility $paymentUtility): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('delete payment utilities');
     }
 
     public function forceDelete(User $user, PaymentUtility $paymentUtility): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('delete payment utilities') && $user->hasRole('administrator');
     }
 }

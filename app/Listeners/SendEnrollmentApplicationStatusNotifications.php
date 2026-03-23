@@ -4,8 +4,8 @@ namespace App\Listeners;
 
 use App\Events\EnrollmentApproved;
 use App\Events\EnrollmentRejected;
-use App\Notifications\EnrollmentApplicationApprovedNotification;
-use App\Notifications\EnrollmentApplicationRejectedNotification;
+use App\Notifications\EnrollmentApprovedNotification;
+use App\Notifications\EnrollmentRejectedNotification;
 use Illuminate\Support\Facades\Notification;
 
 class SendEnrollmentApplicationStatusNotifications
@@ -19,7 +19,7 @@ class SendEnrollmentApplicationStatusNotifications
             return;
         }
 
-        $notification = new EnrollmentApplicationApprovedNotification($application);
+        $notification = new EnrollmentApprovedNotification($application);
 
         if ($student->user) {
             $student->user->notify($notification);
@@ -41,7 +41,7 @@ class SendEnrollmentApplicationStatusNotifications
             return;
         }
 
-        $notification = new EnrollmentApplicationRejectedNotification($application);
+        $notification = new EnrollmentRejectedNotification($application);
 
         if ($student->user) {
             $student->user->notify($notification);

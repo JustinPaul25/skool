@@ -5,11 +5,10 @@ use App\Models\Branch;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\User;
+use App\Notifications\PaymentReceivedNotification;
 use App\Services\PaymentService;
-use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Event;
-
-beforeEach(fn () => $this->seed(RoleSeeder::class));
+use Illuminate\Support\Facades\Notification;
 
 it('records a payment and reduces account balance', function () {
     Event::fake();
@@ -105,4 +104,52 @@ it('allows staff to view payments policy but not update', function () {
     expect($staff->can('viewAny', Payment::class))->toBeTrue()
         ->and($staff->can('view', $payment))->toBeTrue()
         ->and($staff->can('update', $payment))->toBeFalse();
+});
+
+it('sends a payment received notification to the student portal user', function () {
+    Notification::fake();
+
+    $branch = Branch::query()->create([
+        'name' => 'East',
+        'code' => 'E',
+        'address' => 'x',
+        'phone' => '1',
+        'email' => 'e@test.com',
+        'is_active' => true,
+        'commission_rate' => 0,
+    ]);
+
+    $portalUser = User::factory()->create();
+    $portalUser->assignRole('student');
+
+    $student = Student::query()->create([
+        'student_id' => 'STU-PAY-PORTAL',
+        'branch_id' => $branch->id,
+        'user_id' => $portalUser->id,
+        'first_name' => 'Portal',
+        'last_name' => 'Student',
+        'middle_name' => null,
+        'birth_date' => '2015-01-01',
+        'gender' => 'male',
+        'guardian_name' => 'G',
+        'guardian_phone' => '1',
+        'email' => 'portal@example.com',
+    ]);
+
+    $account = Account::query()->create([
+        'student_id' => $student->id,
+        'balance' => '500.00',
+    ]);
+
+    $staff = User::factory()->create();
+    $staff->assignRole('staff');
+    $this->actingAs($staff);
+
+    app(PaymentService::class)->record($account, [
+        'amount' => '100.00',
+        'type' => 'tuition',
+        'paid_at' => now(),
+    ]);
+
+    Notification::assertSentTo($portalUser, PaymentReceivedNotification::class);
 });

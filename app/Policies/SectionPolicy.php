@@ -7,59 +7,38 @@ use App\Models\User;
 
 class SectionPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole(['administrator', 'staff']);
+        return $user->can('view sections');
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Section $section): bool
     {
-        return $user->hasAnyRole(['administrator', 'staff']);
+        return $user->can('view sections');
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['administrator', 'staff']);
+        return $user->can('create sections');
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Section $section): bool
     {
-        return $user->hasAnyRole(['administrator', 'staff']);
+        return $user->can('update sections');
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function delete(User $user, Section $section): bool
     {
-        return $user->hasAnyRole(['administrator', 'staff']);
+        return $user->can('delete sections');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Section $section): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('delete sections');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Section $section): bool
     {
-        return $user->hasRole('administrator');
+        return $user->can('delete sections') && $user->hasRole('administrator');
     }
 }

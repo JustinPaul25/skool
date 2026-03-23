@@ -23,7 +23,7 @@ class EnrollmentController extends Controller
 {
     public function index(): Response
     {
-        $schoolYear = SchoolYear::query()->where('is_active', true)->orderByDesc('start_date')->first()
+        $schoolYear = SchoolYear::appCurrent()
             ?? SchoolYear::query()->orderByDesc('start_date')->first();
 
         if (! $schoolYear) {
@@ -32,6 +32,8 @@ class EnrollmentController extends Controller
                 'gradeLevels' => [],
                 'schoolYear' => null,
                 'unavailable' => true,
+                'captchaEnabled' => false,
+                'altchaChallengeUrl' => null,
             ]);
         }
 
@@ -50,14 +52,18 @@ class EnrollmentController extends Controller
                 'end_date' => $schoolYear->end_date?->format('Y-m-d'),
             ],
             'unavailable' => false,
+            'captchaEnabled' => (bool) config('captcha.altcha.enabled'),
+            'altchaChallengeUrl' => config('captcha.altcha.enabled')
+                ? route('enrollment.altcha.challenge')
+                : null,
         ]);
     }
 
     public function store(StoreEnrollmentApplicationRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = collect($request->validated())->except('altcha')->all();
 
-        $application = DB::transaction(function () use ($data, $request): EnrollmentApplication {
+        $application = DB::transaction(function () use ($data): EnrollmentApplication {
             $student = Student::query()->create([
                 'student_id' => 'STU-'.now()->format('Y').'-'.strtoupper(Str::random(8)),
                 'branch_id' => $data['branch_id'],
@@ -131,6 +137,27 @@ class EnrollmentController extends Controller
             'id' => $id,
             'collection' => $validated['collection'],
             'original_name' => $file->getClientOriginalName(),
+        ]);
+    }
+
+    public function altchaChallenge(): JsonResponse
+    {
+        if (! config('captcha.altcha.enabled')) {
+            abort(404);
+        }
+
+        $maxNumber = max((int) config('captcha.altcha.max_number', 100000), 1000);
+        $expires = now()->addSeconds((int) config('captcha.altcha.expires_seconds', 300))->timestamp;
+        $salt = Str::random(16).'?expires='.$expires;
+        $number = random_int(0, $maxNumber);
+        $challenge = hash('sha256', $salt.$number);
+
+        return response()->json([
+            'algorithm' => 'SHA-256',
+            'challenge' => $challenge,
+            'maxnumber' => $maxNumber,
+            'salt' => $salt,
+            'signature' => hash_hmac('sha256', $challenge, (string) config('captcha.altcha.hmac_key')),
         ]);
     }
 

@@ -11,10 +11,7 @@ use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\User;
-use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Hash;
-
-beforeEach(fn () => $this->seed(RoleSeeder::class));
 
 function seedPortalFullFixture(): array
 {

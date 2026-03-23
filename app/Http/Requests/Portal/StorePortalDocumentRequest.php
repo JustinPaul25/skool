@@ -21,7 +21,12 @@ class StorePortalDocumentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,jpeg,jpg,png,webp'],
+            'file' => [
+                'required',
+                'file',
+                'max:10240',
+                'mimetypes:image/jpeg,image/png,application/pdf',
+            ],
         ];
     }
 }

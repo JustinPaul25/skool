@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Sections;
 
+use App\Filament\Concerns\HidesNavigationForBranchManagers;
 use App\Filament\Resources\Sections\Pages\CreateSection;
 use App\Filament\Resources\Sections\Pages\EditSection;
 use App\Filament\Resources\Sections\Pages\ListSections;
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SectionResource extends Resource
 {
+    use HidesNavigationForBranchManagers;
+
     protected static ?string $model = Section::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;

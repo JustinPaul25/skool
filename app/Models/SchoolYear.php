@@ -42,4 +42,19 @@ class SchoolYear extends Model
     {
         return $this->hasMany(BranchAccount::class);
     }
+
+    /**
+     * School year used for enrollments, portal, dashboards, and reports.
+     * Honors Settings → active school year override when set; otherwise the year marked active in the database.
+     */
+    public static function appCurrent(): ?self
+    {
+        $settings = SchoolSetting::query()->first();
+
+        if ($settings?->active_school_year_id) {
+            return self::query()->find($settings->active_school_year_id);
+        }
+
+        return self::query()->where('is_active', true)->first();
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PaymentUtilities;
 
+use App\Filament\Concerns\HidesNavigationForBranchManagers;
 use App\Filament\Resources\PaymentUtilities\Pages\CreatePaymentUtility;
 use App\Filament\Resources\PaymentUtilities\Pages\EditPaymentUtility;
 use App\Filament\Resources\PaymentUtilities\Pages\ListPaymentUtilities;
@@ -19,6 +20,8 @@ use UnitEnum;
 
 class PaymentUtilityResource extends Resource
 {
+    use HidesNavigationForBranchManagers;
+
     protected static ?string $model = PaymentUtility::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;

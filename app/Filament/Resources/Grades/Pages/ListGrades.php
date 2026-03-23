@@ -31,6 +31,7 @@ class ListGrades extends ListRecords
                         ->disk((string) config('filesystems.uploads_disk', 'spaces'))
                         ->directory('grade-imports')
                         ->acceptedFileTypes(['text/csv', 'text/plain', 'application/csv'])
+                        ->maxSize(10240)
                         ->required()
                         ->helperText('Existing rows (same enrollment, subject, period) are updated.'),
                 ])

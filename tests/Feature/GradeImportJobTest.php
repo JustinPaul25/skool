@@ -9,12 +9,10 @@ use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\Subject;
 use App\Models\User;
-use Database\Seeders\RoleSeeder;
+use App\Notifications\GradeImportCompletedNotification;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
-
-beforeEach(fn () => $this->seed(RoleSeeder::class));
 
 function seedGradeImportFixtures(): array
 {
@@ -94,7 +92,7 @@ it('imports grades from csv and notifies the user', function () {
         ->and($grade->remarks)->toBe('Good work')
         ->and($grade->graded_by)->toBe($user->id);
 
-    Notification::assertSentTo($user, \App\Notifications\GradeImportCompletedNotification::class);
+    Notification::assertSentTo($user, GradeImportCompletedNotification::class);
 });
 
 it('records validation errors for bad rows', function () {
@@ -119,5 +117,5 @@ it('records validation errors for bad rows', function () {
 
     expect(Grade::query()->count())->toBe(0);
 
-    Notification::assertSentTo($user, \App\Notifications\GradeImportCompletedNotification::class);
+    Notification::assertSentTo($user, GradeImportCompletedNotification::class);
 });

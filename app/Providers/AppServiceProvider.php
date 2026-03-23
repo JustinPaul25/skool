@@ -3,15 +3,24 @@
 namespace App\Providers;
 
 use App\Events\EnrollmentApproved;
-use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use App\Events\EnrollmentRejected;
 use App\Events\EnrollmentSubmitted;
+use App\Events\PaymentReceived;
 use App\Filesystem\WindowsSafeFilesystem;
 use App\Listeners\SendEnrollmentApplicationStatusNotifications;
 use App\Listeners\SendEnrollmentSubmittedNotification;
+use App\Listeners\SendPaymentReceivedNotification;
+use App\Models\Enrollment;
+use App\Models\SchoolSetting;
+use App\Policies\ActivityLogPolicy;
+use App\Policies\EnrollmentPolicy;
+use App\Policies\SchoolSettingPolicy;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Activitylog\Models\Activity;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +41,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Activity::class, ActivityLogPolicy::class);
+        Gate::policy(SchoolSetting::class, SchoolSettingPolicy::class);
+        Gate::policy(Enrollment::class, EnrollmentPolicy::class);
+
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         RedirectIfAuthenticated::redirectUsing(function ($request): string {
             if ($request->user()?->hasRole('student')) {
                 return route('portal.dashboard');
@@ -43,5 +60,6 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(EnrollmentApproved::class, [SendEnrollmentApplicationStatusNotifications::class, 'handleApproved']);
         Event::listen(EnrollmentRejected::class, [SendEnrollmentApplicationStatusNotifications::class, 'handleRejected']);
         Event::listen(EnrollmentSubmitted::class, SendEnrollmentSubmittedNotification::class);
+        Event::listen(PaymentReceived::class, SendPaymentReceivedNotification::class);
     }
 }

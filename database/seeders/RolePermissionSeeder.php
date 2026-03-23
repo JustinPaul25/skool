@@ -135,7 +135,9 @@ class RolePermissionSeeder extends Seeder
         // Staff - access to students, enrollments, grades, and payments
         $staff = Role::firstOrCreate(['name' => 'staff']);
         $staff->givePermissionTo([
+            'view branches',
             'view students', 'create students', 'update students', 'export students',
+            'view school years',
             'view enrollments', 'create enrollments', 'update enrollments',
             'view enrollment applications', 'update enrollment applications', 'review enrollment applications',
             'view grades', 'create grades', 'update grades', 'import grades', 'export grades',
@@ -150,9 +152,11 @@ class RolePermissionSeeder extends Seeder
         // Branch Manager - limited to their branch
         $branchManager = Role::firstOrCreate(['name' => 'branch_manager']);
         $branchManager->givePermissionTo([
+            'view branches',
             'view students', 'create students', 'update students', 'export students',
+            'view school years',
             'view enrollments', 'create enrollments', 'update enrollments',
-            'view enrollment applications', 'review enrollment applications',
+            'view enrollment applications', 'update enrollment applications', 'review enrollment applications',
             'view grades', 'create grades', 'update grades',
             'view payments', 'create payments', 'view receipts', 'print receipts',
             'view payment utilities',

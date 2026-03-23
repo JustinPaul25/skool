@@ -126,4 +126,16 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Notification jobs queue name
+    |--------------------------------------------------------------------------
+    |
+    | Queued notifications use this queue (see QueuesOnNotificationsChannel).
+    | Run a worker with this queue, e.g. `php artisan queue:work --queue=notifications,default`.
+    |
+    */
+
+    'notifications_queue' => env('NOTIFICATIONS_QUEUE', 'notifications'),
+
 ];

@@ -3,6 +3,7 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, ref, watch } from 'vue';
+import 'altcha';
 
 import { academicSchema, guardianSchema, personalSchema } from '../../lib/enrollmentSchemas';
 
@@ -15,7 +16,11 @@ const props = defineProps<{
     gradeLevels: GradeLevel[];
     schoolYear: SchoolYear | null;
     unavailable: boolean;
+    captchaEnabled?: boolean;
+    altchaChallengeUrl?: string | null;
 }>();
+
+const captchaEnabled = computed(() => props.captchaEnabled === true && !!props.altchaChallengeUrl);
 
 const COLLECTION_PHOTO = 'photo';
 const COLLECTION_BIRTH = 'birth_certificate';
@@ -24,6 +29,8 @@ const COLLECTION_EXTRA = 'additional_documents';
 const step = ref(0);
 const zodFieldErrors = ref<Record<string, string>>({});
 const uploadError = ref<string | null>(null);
+const captchaError = ref<string | null>(null);
+const altchaRef = ref<HTMLElement | null>(null);
 
 type PendingUpload = { id: string; collection: string; original_name: string };
 const pendingUploads = ref<PendingUpload[]>([]);
@@ -44,6 +51,7 @@ const form = useForm({
     grade_level_id: null as number | null,
     school_year_id: props.schoolYear?.id ?? 0,
     notes: '',
+    altcha: '',
 });
 
 const filteredGradeLevels = computed(() => {
@@ -69,6 +77,7 @@ const stepLabels = ['Personal', 'Guardian', 'Academic', 'Documents', 'Review'];
 
 function clearZodErrors(): void {
     zodFieldErrors.value = {};
+    captchaError.value = null;
 }
 
 function applyZodErrors(err: { flatten: () => { fieldErrors: Record<string, string[] | undefined> } }): void {
@@ -151,6 +160,17 @@ function validateCurrentStep(): boolean {
         return true;
     }
 
+    if (step.value === 4) {
+        captchaError.value = null;
+        if (captchaEnabled.value && !form.altcha) {
+            captchaError.value = 'Please complete the security verification.';
+
+            return false;
+        }
+
+        return true;
+    }
+
     return true;
 }
 
@@ -171,11 +191,45 @@ function prevStep(): void {
     }
 }
 
+function onAltchaStateChange(e: Event): void {
+    const detail = (e as CustomEvent<{ state?: string; payload?: string }>).detail;
+    const state = detail?.state ?? '';
+    const payload = detail?.payload ?? '';
+
+    if (state === 'verified' && payload) {
+        form.altcha = payload;
+        captchaError.value = null;
+
+        return;
+    }
+
+    if (state === 'error') {
+        captchaError.value = 'Security check failed. Please try again.';
+    }
+
+    if (state === 'unverified' || state === 'verifying' || state === 'error') {
+        form.altcha = '';
+    }
+}
+
+watch(
+    () => altchaRef.value,
+    (el, oldEl) => {
+        oldEl?.removeEventListener('statechange', onAltchaStateChange as EventListener);
+        el?.addEventListener('statechange', onAltchaStateChange as EventListener);
+    },
+);
+
 function submit(): void {
     if (!validateCurrentStep()) {
         return;
     }
-    form.post('/online-enrollment', { preserveScroll: true });
+    form.post('/online-enrollment', {
+        preserveScroll: true,
+        onError: () => {
+            form.altcha = '';
+        },
+    });
 }
 
 async function uploadFile(collection: string, file: File | null): Promise<void> {
@@ -183,10 +237,16 @@ async function uploadFile(collection: string, file: File | null): Promise<void> 
     if (!file) {
         return;
     }
+    if (captchaEnabled.value && !form.altcha) {
+        uploadError.value = 'Please complete security verification before uploading documents.';
+
+        return;
+    }
 
     const body = new FormData();
     body.append('collection', collection);
     body.append('document', file);
+    body.append('altcha', form.altcha || '');
 
     try {
         const { data } = await axios.post<{ id: string; collection: string; original_name: string }>('/enrollment/documents', body, {
@@ -198,7 +258,14 @@ async function uploadFile(collection: string, file: File | null): Promise<void> 
         } else {
             pendingUploads.value = [...pendingUploads.value.filter((u) => u.collection !== data.collection), data];
         }
-    } catch {
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 422 && error.response.data?.errors?.altcha?.[0]) {
+            uploadError.value = error.response.data.errors.altcha[0] as string;
+            form.altcha = '';
+
+            return;
+        }
+
         uploadError.value = 'Upload failed. Please try a smaller file or a different format (JPG, PNG, PDF, WebP).';
     }
 }
@@ -455,6 +522,16 @@ const firstFormError = computed(() => {
                         <h2 class="text-lg font-semibold text-gray-900">Documents</h2>
                         <p class="mt-1 text-sm text-gray-600">Upload a clear photo and birth certificate (PDF or image). Optional: other supporting documents.</p>
                         <p v-if="uploadError" class="mt-3 text-sm text-red-600">{{ uploadError }}</p>
+                        <div v-if="captchaEnabled" class="mt-6 rounded-lg bg-gray-50 px-4 py-3">
+                            <p class="text-sm font-medium text-gray-800">Security verification</p>
+                            <p class="mt-1 text-xs text-gray-500">Complete this once before uploading or submitting.</p>
+                            <altcha-widget ref="altchaRef" class="mt-3 block min-h-[65px]" :challengeurl="altchaChallengeUrl ?? ''" />
+                            <p v-if="captchaError" class="mt-2 text-sm text-red-600">{{ captchaError }}</p>
+                            <p v-if="form.errors.altcha" class="mt-2 text-sm text-red-600">
+                                {{ form.errors.altcha }}
+                            </p>
+                            <p class="mt-2 text-xs text-gray-400">This site uses ALTCHA proof-of-work to reduce spam.</p>
+                        </div>
                         <div class="mt-6 space-y-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Student photo *</label>
@@ -501,6 +578,9 @@ const firstFormError = computed(() => {
                                 <li v-if="pendingUploads.some((u) => u.collection === COLLECTION_EXTRA)">Additional document(s) attached</li>
                             </ul>
                         </div>
+                        <p v-if="captchaEnabled && !form.altcha" class="mt-4 text-sm text-amber-700">
+                            Security verification is required. Please go back to the Documents step if this token expired.
+                        </p>
                         <p v-if="firstFormError" class="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
                             {{ firstFormError }}
                         </p>
@@ -540,3 +620,4 @@ const firstFormError = computed(() => {
         </div>
     </div>
 </template>
+

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\SchoolSetting;
 use App\Models\SchoolYear;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -50,6 +51,22 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
             ],
             'portal' => $this->portalShare($request),
+            'school' => $this->schoolShare(),
+        ];
+    }
+
+    /**
+     * @return array{name: string, logo_url: ?string, address: ?string, phone: ?string}
+     */
+    private function schoolShare(): array
+    {
+        $setting = SchoolSetting::query()->first();
+
+        return [
+            'name' => $setting?->school_name ?: (string) config('app.name'),
+            'logo_url' => $setting?->getFirstMediaUrl('logo') ?: null,
+            'address' => $setting?->address,
+            'phone' => $setting?->phone,
         ];
     }
 
@@ -85,7 +102,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         $student->loadMissing(['branch']);
-        $activeYear = SchoolYear::query()->where('is_active', true)->first();
+        $activeYear = SchoolYear::appCurrent();
 
         $enrollment = null;
         if ($activeYear !== null) {

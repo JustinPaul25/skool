@@ -405,14 +405,14 @@
 
 > Prefer scoping the existing admin panel via policies and `modifyQueryUsing` before creating a second panel.
 
-- [ ] **Branch manager scoping**
+- [x] **Branch manager scoping**
   - In each relevant resource (`StudentResource`, `EnrollmentApplicationResource`, `PaymentResource`), override `getEloquentQuery()` or use `modifyQueryUsing()`:
     ```php
     ->modifyQueryUsing(fn (Builder $query) => $query->where('branch_id', auth()->user()->branch_id))
     ```
   - Hide resources irrelevant to branch managers via `shouldRegisterNavigation()` returning `false` when the user lacks the required role.
 
-- [ ] **Branch dashboard widget**
+- [x] **Branch dashboard widget**
   - `BranchOverviewWidget` — shows enrollment count, revenue, outstanding balances scoped to the authenticated branch manager's branch.
 
 ---
@@ -421,29 +421,29 @@
 
 ### 8.1 Dashboard Widgets
 
-- [ ] **`StatsOverviewWidget`**
+- [x] **`StatsOverviewWidget`**
   - Stat cards: Total Students, Enrolled This Year, Total Revenue (current school year), Outstanding Balances.
   - Scope by branch for `branch_manager`.
 
-- [ ] **`EnrollmentsByGradeLevelChart` (bar chart)**
+- [x] **`EnrollmentsByGradeLevelChart` (bar chart)**
   - Filament chart widget; data from `enrollments` grouped by `grade_level_id` for the active school year.
 
-- [ ] **`RevenueTimeSeriesChart` (line chart)**
+- [x] **`RevenueTimeSeriesChart` (line chart)**
   - Monthly revenue for the active school year from `payments` table.
 
-- [ ] **`RecentActivityWidget`**
+- [x] **`RecentActivityWidget`**
   - Last 10 records from Spatie `activity_log` table.
 
 ### 8.2 Activity Log Resource
 
-- [ ] **`ActivityLogResource`**
+- [x] **`ActivityLogResource`**
   - Read-only resource (no create/edit/delete).
   - Table: event, subject type, subject id, causer (user), `created_at`; filter by event type and causer.
   - Policy: `administrator` only.
 
 ### 8.3 Report Hub Page
 
-- [ ] **`ReportHubPage` (custom Filament page)**
+- [x] **`ReportHubPage` (custom Filament page)**
   - Navigation item under "Reports" group.
   - Sections: "Export Students", "Export Payments", "Export Grades" — each a button triggering the appropriate export action (Excel download via Maatwebsite).
   - "Generate Report Cards (Bulk)" action — dispatches `BulkReportCardJob` for all enrolled students in the active year.
@@ -452,13 +452,13 @@
 
 ## Phase 9 — Settings & Configuration
 
-- [ ] **`SettingsPage` (custom Filament page)**
+- [x] **`SettingsPage` (custom Filament page)**
   - Use `spatie/laravel-settings` or a simple `settings` model/JSON column.
   - Fields: School Name, School Logo (SpatieMediaLibraryFileUpload → Cloudinary), address, phone, active school year override, email footer text.
   - Save via `SettingsService::update(array $data)`.
   - Policy: `administrator` only.
 
-- [ ] **Global settings access**
+- [x] **Global settings access**
   - Create `app/Settings/SchoolSettings.php` (if using spatie/laravel-settings: `composer require spatie/laravel-settings`).
   - Alternatively: create a `Setting` model with key/value store accessed via `Setting::get('school_name')`.
   - Share critical settings (school name, logo URL) as Inertia shared props in `HandleInertiaRequests::share()`.
@@ -467,36 +467,34 @@
 
 ## Phase 10 — Notifications & Email
 
-- [ ] **Define all Laravel notification classes** under `app/Notifications/`:
-  - `EnrollmentSubmittedNotification` — email (Brevo template) + database.
-  - `EnrollmentApprovedNotification` — email + database.
-  - `EnrollmentRejectedNotification` — email + database.
-  - `PaymentReceivedNotification` — email (receipt PDF attached) + database; triggers Ably broadcast.
-  - `PaymentReminderNotification` — email; queued with `->later()`.
-  - `ReportCardReadyNotification` — email (download link) + database.
-  - `PasswordResetNotification` — override Laravel default to use Brevo SMTP.
+- [x] **Define all Laravel notification classes** under `app/Notifications/`:
+  - `EnrollmentSubmittedNotification` — Laravel `MailMessage` + database when notifiable is a `User`.
+  - `EnrollmentApprovedNotification` — email + database (linked portal user).
+  - `EnrollmentRejectedNotification` — email + database (linked portal user).
+  - `PaymentReceivedNotification` — email (receipt PDF attached) + database; real-time UI uses broadcast `PaymentReceived` event (Ably when configured).
+  - `PaymentReminderNotification` — email; queued with delayed send (`delay()` / same semantics as `later()`).
+  - `ReportCardReadyNotification` — Laravel mail with signed download link + database.
+  - `PasswordResetNotification` — extends Laravel reset, queued, standard SMTP (`MailMessage` via framework).
 
-- [ ] **Filament database notification bell**
+- [x] **Filament database notification bell**
   - Enable `->databaseNotifications()` in `AdminPanelProvider` for staff notifications.
 
-- [ ] **Email templates in Brevo dashboard**
-  - Create templates for each notification type.
-  - Document the template IDs in `config/services.php` or a constants file so they can be updated without code changes.
+- [x] **Email content**
+  - All transactional content uses Laravel notifications / `MailMessage` (no third-party template IDs). Brand via `resources/views/vendor/mail` if needed.
 
-- [ ] **Queue all notifications**
-  - All notification classes implement `ShouldQueue`.
-  - Assign to the `notifications` Horizon queue.
+- [x] **Queue all notifications**
+  - Notification classes implement `ShouldQueue` and use `QueuesOnNotificationsChannel` → `config('queue.notifications_queue')` (default `notifications`). Run workers with `--queue=notifications,default` (or Horizon equivalent).
 
 ---
 
 ## Phase 11 — Authorization & Security
 
-- [ ] **Create policies for all models**
+- [x] **Create policies for all models**
   - `UserPolicy`, `StudentPolicy`, `BranchPolicy`, `EnrollmentPolicy`, `PaymentPolicy`, `GradePolicy`, `SchoolYearPolicy`, `GradeLevelPolicy`, `SectionPolicy`, `SubjectPolicy`, `RequirementPolicy`, `ActivityLogPolicy`.
   - Each policy checks the appropriate Spatie permission or role.
   - Register via Laravel's auto-discovery (models and policies in standard locations) or explicitly in `AuthServiceProvider`.
 
-- [ ] **Security hardening**
+- [x] **Security hardening**
   - Add `throttle:10,1` middleware to `POST /online-enrollment` and login routes.
   - Validate all file uploads: allowed MIME types (`image/jpeg`, `image/png`, `application/pdf`), max size (10 MB).
   - Ensure all Filament resources that modify data have corresponding policy methods (`create`, `update`, `delete`, `viewAny`, `view`).

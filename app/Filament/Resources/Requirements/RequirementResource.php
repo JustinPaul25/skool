@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Requirements;
 
+use App\Filament\Concerns\HidesNavigationForBranchManagers;
 use App\Filament\Resources\Requirements\Pages\CreateRequirement;
 use App\Filament\Resources\Requirements\Pages\EditRequirement;
 use App\Filament\Resources\Requirements\Pages\ListRequirements;
@@ -18,6 +19,8 @@ use Filament\Tables\Table;
 
 class RequirementResource extends Resource
 {
+    use HidesNavigationForBranchManagers;
+
     protected static ?string $model = Requirement::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;

@@ -22,11 +22,14 @@ Route::get('/', function () {
 
 Route::get('/online-enrollment', [EnrollmentController::class, 'index'])->name('enrollment.index');
 Route::post('/online-enrollment', [EnrollmentController::class, 'store'])
-    ->middleware('throttle:5,1')
+    ->middleware('throttle:10,1')
     ->name('enrollment.store');
 Route::post('/enrollment/documents', [EnrollmentController::class, 'uploadDocuments'])
     ->middleware('throttle:20,1')
     ->name('enrollment.documents');
+Route::get('/enrollment/altcha/challenge', [EnrollmentController::class, 'altchaChallenge'])
+    ->middleware('throttle:60,1')
+    ->name('enrollment.altcha.challenge');
 Route::get('/online-enrollment/thank-you', [EnrollmentController::class, 'thankYou'])->name('enrollment.thank-you');
 
 Route::get('/media/{media}/{conversion?}', [MediaFileController::class, 'show'])
@@ -35,7 +38,9 @@ Route::get('/media/{media}/{conversion?}', [MediaFileController::class, 'show'])
 
 Route::middleware('guest')->group(function () {
     Route::get('/portal/login', [PortalAuthController::class, 'create'])->name('portal.login');
-    Route::post('/portal/login', [PortalAuthController::class, 'store'])->name('portal.login.store');
+    Route::post('/portal/login', [PortalAuthController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('portal.login.store');
 });
 
 Route::middleware(['auth', 'role:student'])->prefix('portal')->name('portal.')->group(function () {

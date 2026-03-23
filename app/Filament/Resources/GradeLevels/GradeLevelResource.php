@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\GradeLevels;
 
+use App\Filament\Concerns\HidesNavigationForBranchManagers;
 use App\Filament\Resources\GradeLevels\Pages\CreateGradeLevel;
 use App\Filament\Resources\GradeLevels\Pages\EditGradeLevel;
 use App\Filament\Resources\GradeLevels\Pages\ListGradeLevels;
@@ -18,6 +19,8 @@ use Filament\Tables\Table;
 
 class GradeLevelResource extends Resource
 {
+    use HidesNavigationForBranchManagers;
+
     protected static ?string $model = GradeLevel::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedAcademicCap;

@@ -11,12 +11,7 @@ use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\EnrollmentApplicationService;
-use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Event;
-
-beforeEach(function () {
-    $this->seed(RoleSeeder::class);
-});
 
 it('approves an application and creates enrollment and account', function () {
     Event::fake([EnrollmentApproved::class]);

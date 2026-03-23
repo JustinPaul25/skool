@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Branch;
+use App\Models\GradeLevel;
+use App\Rules\AltchaPayload;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -33,6 +36,12 @@ class StoreEnrollmentApplicationRequest extends FormRequest
             'grade_level_id' => ['required', 'exists:grade_levels,id'],
             'school_year_id' => ['required', 'exists:school_years,id'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'altcha' => [
+                config('captcha.altcha.enabled') ? 'required' : 'nullable',
+                'string',
+                'max:4096',
+                new AltchaPayload,
+            ],
         ];
     }
 
@@ -54,12 +63,12 @@ class StoreEnrollmentApplicationRequest extends FormRequest
             $branchId = (int) $this->input('branch_id');
             $gradeLevelId = (int) $this->input('grade_level_id');
 
-            $branch = \App\Models\Branch::query()->find($branchId);
+            $branch = Branch::query()->find($branchId);
             if ($branch && ! $branch->is_active) {
                 $validator->errors()->add('branch_id', 'The selected branch is not available.');
             }
 
-            $grade = \App\Models\GradeLevel::query()->find($gradeLevelId);
+            $grade = GradeLevel::query()->find($gradeLevelId);
             if ($grade && $grade->branch_id !== null && (int) $grade->branch_id !== $branchId) {
                 $validator->errors()->add('grade_level_id', 'The selected grade level is not available for this branch.');
             }

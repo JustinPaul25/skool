@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\QueuesOnNotificationsChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -9,6 +10,7 @@ use Illuminate\Notifications\Notification;
 class GradeImportCompletedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+    use QueuesOnNotificationsChannel;
 
     /**
      * @param  list<string>  $errors
@@ -17,7 +19,9 @@ class GradeImportCompletedNotification extends Notification implements ShouldQue
         public int $imported,
         public int $skipped,
         public array $errors = [],
-    ) {}
+    ) {
+        $this->queueOnNotificationsChannel();
+    }
 
     /**
      * @return array<int, string>

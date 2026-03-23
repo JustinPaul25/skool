@@ -22,11 +22,11 @@ class SchoolYearService
     }
 
     /**
-     * Get the currently active school year.
+     * Get the currently active school year (includes settings override when configured).
      */
     public function getActive(): ?SchoolYear
     {
-        return SchoolYear::where('is_active', true)->first();
+        return SchoolYear::appCurrent();
     }
 
     /**

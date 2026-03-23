@@ -10,12 +10,9 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\User;
 use App\Notifications\ReportCardReadyNotification;
-use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Notification;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-
-beforeEach(fn () => $this->seed(RoleSeeder::class));
 
 function seedReportCardScenario(): array
 {

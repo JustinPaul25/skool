@@ -3,10 +3,7 @@
 use App\Models\Branch;
 use App\Models\Student;
 use App\Models\User;
-use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Facades\Hash;
-
-beforeEach(fn () => $this->seed(RoleSeeder::class));
 
 function createPortalStudentUser(): array
 {

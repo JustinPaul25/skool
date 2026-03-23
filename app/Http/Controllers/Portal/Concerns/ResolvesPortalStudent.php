@@ -21,7 +21,7 @@ trait ResolvesPortalStudent
 
     protected function activeSchoolYear(): ?SchoolYear
     {
-        return SchoolYear::query()->where('is_active', true)->first();
+        return SchoolYear::appCurrent();
     }
 
     protected function activeEnrollment(Student $student): ?Enrollment

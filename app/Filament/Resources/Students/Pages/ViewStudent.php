@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Students\Pages;
 
+use App\Filament\Pages\ReportHubPage;
 use App\Filament\Resources\Students\StudentResource;
 use App\Jobs\GenerateReportCardJob;
 use App\Models\SchoolYear;
@@ -62,17 +63,11 @@ class ViewStudent extends ViewRecord
                         ->send();
                 }),
 
-            Action::make('exportData')
-                ->label('Export')
+            Action::make('openReportHub')
+                ->label(__('Report hub'))
                 ->icon('heroicon-o-arrow-down-tray')
-                ->color('success')
-                ->action(function (): void {
-                    Notification::make()
-                        ->title('Export')
-                        ->body('Excel export classes (e.g. StudentsExport) can be added alongside maatwebsite/excel in a later step.')
-                        ->info()
-                        ->send();
-                }),
+                ->color('gray')
+                ->url(ReportHubPage::getUrl()),
         ];
     }
 }

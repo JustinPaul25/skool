@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SchoolYears;
 
+use App\Filament\Concerns\HidesNavigationForBranchManagers;
 use App\Filament\Resources\SchoolYears\Pages\CreateSchoolYear;
 use App\Filament\Resources\SchoolYears\Pages\EditSchoolYear;
 use App\Filament\Resources\SchoolYears\Pages\ListSchoolYears;
@@ -18,6 +19,8 @@ use Filament\Tables\Table;
 
 class SchoolYearResource extends Resource
 {
+    use HidesNavigationForBranchManagers;
+
     protected static ?string $model = SchoolYear::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendar;
