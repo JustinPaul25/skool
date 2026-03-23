@@ -505,7 +505,7 @@
 
 ## Phase 12 — Testing
 
-- [ ] **Feature tests for critical flows** (using Pest)
+- [x] **Feature tests for critical flows** (using Pest)
   - `tests/Feature/Enrollment/EnrollmentApplicationTest.php` — submit application, approve, verify enrollment record created and notification fired.
   - `tests/Feature/Finance/PaymentTest.php` — post payment inside transaction, verify balance updated, `PaymentReceived` event fired.
   - `tests/Feature/Auth/PanelAccessTest.php` — verify student role cannot access `/admin`; admin can.
@@ -515,9 +515,9 @@
   - Use Filament's testing helpers (`livewire(StudentResource\Pages\ListStudents::class)->assertCanSeeTableRecords([...])`).
   - Test approve/reject enrollment actions trigger the expected events.
 
-- [ ] **Architecture tests** (Pest `arch()`)
-  - `arch()->expect('App\Services')->toBeClasses()->not->toHavePublicProperties()`.
+- [x] **Architecture tests** (Pest `arch()`)
   - `arch()->expect('App\Models')->toUseStrictTypes()`.
+  - Reflection-based check that `App\Services/*` have no public properties.
 
 ---
 

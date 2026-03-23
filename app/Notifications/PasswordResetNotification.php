@@ -21,7 +21,7 @@ class PasswordResetNotification extends ResetPassword implements ShouldQueue
     /**
      * @return array<int, string>
      */
-    public function via(object $notifiable): array
+    public function via($notifiable): array
     {
         return ['mail'];
     }
