@@ -97,6 +97,6 @@ class PortalDocumentsController extends Controller
             'submitted_at' => now(),
         ]);
 
-        return redirect()->route('portal.documents.index')->with('success', __('Document uploaded.'));
+        return redirect()->route('portal.documents')->with('success', __('Document uploaded.'));
     }
 }

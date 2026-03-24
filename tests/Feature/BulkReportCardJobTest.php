@@ -10,7 +10,7 @@ use App\Models\Student;
 use Illuminate\Support\Facades\Bus;
 
 it('dispatches a generate job per distinct enrolled student for the school year', function () {
-    Bus::fake([GenerateReportCardJob::class]);
+    Bus::fake();
 
     $branch = Branch::query()->create([
         'name' => 'Main',
@@ -67,11 +67,17 @@ it('dispatches a generate job per distinct enrolled student for the school year'
 
     (new BulkReportCardJob($year->id))->handle();
 
-    Bus::assertDispatchedTimes(GenerateReportCardJob::class, 2);
+    Bus::assertBatched(function ($batch) use ($year, $s1, $s2): bool {
+        $jobs = collect($batch->jobs);
+
+        return $jobs->count() === 2
+            && $jobs->every(fn ($job) => $job instanceof GenerateReportCardJob && $job->schoolYearId === $year->id)
+            && $jobs->pluck('studentId')->sort()->values()->all() === [$s1->id, $s2->id];
+    });
 });
 
 it('scopes bulk dispatch to a branch when branch id is set', function () {
-    Bus::fake([GenerateReportCardJob::class]);
+    Bus::fake();
 
     $branchA = Branch::query()->create([
         'name' => 'A',
@@ -138,8 +144,12 @@ it('scopes bulk dispatch to a branch when branch id is set', function () {
 
     (new BulkReportCardJob($year->id, $branchA->id))->handle();
 
-    Bus::assertDispatchedTimes(GenerateReportCardJob::class, 1);
-    Bus::assertDispatched(GenerateReportCardJob::class, function (GenerateReportCardJob $job) use ($studentA, $year): bool {
-        return $job->studentId === $studentA->id && $job->schoolYearId === $year->id;
+    Bus::assertBatched(function ($batch) use ($year, $studentA): bool {
+        $jobs = collect($batch->jobs);
+
+        return $jobs->count() === 1
+            && $jobs->first() instanceof GenerateReportCardJob
+            && $jobs->first()->studentId === $studentA->id
+            && $jobs->first()->schoolYearId === $year->id;
     });
 });

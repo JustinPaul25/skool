@@ -60,7 +60,7 @@ const notifications = computed(() => page.props.notifications);
                         <Link
                             v-if="!n.read_at"
                             :href="`/portal/notifications/${n.id}/read`"
-                            method="post"
+                            method="patch"
                             as="button"
                             class="rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
                             preserve-scroll

@@ -12,7 +12,7 @@ use Inertia\Response;
 
 class PortalAuthController extends Controller
 {
-    public function create(): Response
+    public function showLogin(): Response
     {
         return Inertia::render('Portal/Auth/Login');
     }
@@ -20,7 +20,7 @@ class PortalAuthController extends Controller
     /**
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'string', 'email'],
@@ -50,7 +50,7 @@ class PortalAuthController extends Controller
         return redirect()->intended(route('portal.dashboard'));
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
 

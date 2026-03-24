@@ -13,7 +13,7 @@ class PortalPaymentsController extends Controller
 {
     use ResolvesPortalStudent;
 
-    public function __invoke(Request $request): Response
+    public function index(Request $request): Response
     {
         $student = $this->portalStudent($request);
         $account = $student->account;

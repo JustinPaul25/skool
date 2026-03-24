@@ -13,7 +13,7 @@ class PortalGradesController extends Controller
 {
     use ResolvesPortalStudent;
 
-    public function __invoke(Request $request): Response
+    public function index(Request $request): Response
     {
         $student = $this->portalStudent($request);
         $enrollment = $this->activeEnrollment($student);

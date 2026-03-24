@@ -14,7 +14,7 @@ class PortalProfileController extends Controller
 {
     use ResolvesPortalStudent;
 
-    public function show(Request $request): Response
+    public function index(Request $request): Response
     {
         $student = $this->portalStudent($request);
         $student->loadMissing(['branch']);

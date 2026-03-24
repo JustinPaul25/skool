@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Enrollment;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 
 class BulkReportCardJob implements ShouldQueue
@@ -26,12 +27,25 @@ class BulkReportCardJob implements ShouldQueue
             ->unique()
             ->values();
 
-        $count = 0;
+        if ($studentIds->isEmpty()) {
+            Log::info('Bulk report card skipped (no enrolled students).', [
+                'school_year_id' => $this->schoolYearId,
+                'branch_id' => $this->branchId,
+            ]);
 
-        foreach ($studentIds as $studentId) {
-            GenerateReportCardJob::dispatch((int) $studentId, $this->schoolYearId);
-            $count++;
+            return;
         }
+
+        $jobs = $studentIds->map(
+            fn (mixed $studentId): GenerateReportCardJob => new GenerateReportCardJob(
+                (int) $studentId,
+                $this->schoolYearId
+            )
+        )->values()->all();
+
+        Bus::batch($jobs)->dispatch();
+
+        $count = count($jobs);
 
         Log::info('Bulk report card jobs dispatched.', [
             'school_year_id' => $this->schoolYearId,

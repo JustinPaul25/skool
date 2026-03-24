@@ -511,7 +511,7 @@
   - `tests/Feature/Auth/PanelAccessTest.php` — verify student role cannot access `/admin`; admin can.
   - `tests/Feature/Portal/StudentPortalTest.php` — authenticated student can view grades, payments; unauthenticated redirects to login.
 
-- [ ] **Filament resource tests**
+- [x] **Filament resource tests**
   - Use Filament's testing helpers (`livewire(StudentResource\Pages\ListStudents::class)->assertCanSeeTableRecords([...])`).
   - Test approve/reject enrollment actions trigger the expected events.
 
@@ -523,21 +523,21 @@
 
 ## Phase 13 — Jobs & Background Processing
 
-- [ ] **Define all queued jobs** under `app/Jobs/`:
+- [x] **Define all queued jobs** under `app/Jobs/`:
   - `SchoolYearRolloverJob` — promotes enrolled students to next grade level, closes current year, opens next; runs in `DB::transaction()`.
   - `GenerateReportCardJob` — renders PDF for one student, uploads to Cloudinary, fires `ReportCardReadyNotification`.
   - `BulkReportCardJob` — loops over enrolled students and dispatches `GenerateReportCardJob` for each (use `Bus::batch()`).
   - `GradeImportJob` — parses uploaded CSV, validates rows, inserts grades, sends summary notification.
   - `SendPaymentReminderJob` — queried overdue accounts, dispatches `PaymentReminderNotification` for each.
 
-- [ ] **Schedule recurring jobs**
+- [x] **Schedule recurring jobs**
   - In `routes/console.php` (Laravel 13 style): schedule `SendPaymentReminderJob` weekly; schedule Horizon snapshot daily.
 
 ---
 
 ## Phase 14 — Routing Summary
 
-- [ ] **`routes/web.php` — public and portal routes**
+- [x] **`routes/web.php` — public and portal routes**
   ```php
   // Public
   Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -565,7 +565,7 @@
   });
   ```
 
-- [ ] **`routes/channels.php` — broadcast channel authorization**
+- [x] **`routes/channels.php` — broadcast channel authorization**
   ```php
   Broadcast::channel('student.{studentId}', function (User $user, int $studentId) {
       return $user->student?->id === $studentId || $user->hasRole(['administrator', 'staff']);

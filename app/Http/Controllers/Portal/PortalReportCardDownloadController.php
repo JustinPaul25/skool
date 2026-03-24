@@ -11,7 +11,7 @@ class PortalReportCardDownloadController extends Controller
 {
     use ResolvesPortalStudent;
 
-    public function __invoke(Request $request): RedirectResponse
+    public function download(Request $request): RedirectResponse
     {
         $student = $this->portalStudent($request);
         $activeYear = $this->activeSchoolYear();
